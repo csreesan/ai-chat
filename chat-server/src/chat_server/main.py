@@ -1,9 +1,10 @@
 import os
 import random
-from typing import List, Union
+from typing import Generator, List, Union
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from openai import OpenAI
 
@@ -80,24 +81,51 @@ def get_chat_messages(thread_id: str) -> List[ChatMessage]:
 
 @app.post(
     '/thread/{thread_id}/chat',
-    response_model=ChatMessage,
     responses={'400': {'model': Error}},
+    response_model=None,
     tags=['Chat'],
 )
-def submit_chat_message(thread_id: str, body: ChatMessage) -> Union[ChatMessage, Error]:
+def submit_chat_message(thread_id: str, body: ChatMessage) -> Union[StreamingResponse, Error]:
     """
-    Submit a chat message and get a response
+    Submit a chat message and get a streaming response
     """
+    # Create the user message but don't commit it yet
+    user_message = ChatMessageModel(content=body.content, thread_id=thread_id, role=body.role)
+
+    # Get existing messages for context
     with Session(engine) as session:
-        session.connection(execution_options={"isolation_level": "SERIALIZABLE"})
-        message = ChatMessageModel(content=body.content, thread_id=thread_id, role=body.role)
-        session.add(message)
-        messages = _get_entire_chat_history(session, thread_id)
-        response = generate_response(messages)
-        message = ChatMessageModel(content=response.content, thread_id=thread_id, role=response.role)
-        session.add(message)
-        session.commit()
-        return response
+        existing_messages = _get_entire_chat_history(session, thread_id)
+
+    # Add the new user message to the context for the AI
+    messages = existing_messages + [ChatMessage(content=body.content, role=body.role)]
+
+    # Create a generator function for the streaming response
+    def response_generator():
+        entire_response = ""
+        try:
+            response = generate_response(messages)
+            for chunk in response:
+                entire_response += chunk
+                yield chunk
+
+            # After streaming is complete, save both messages in a new transaction
+            with Session(engine) as session:
+                session.connection(execution_options={"isolation_level": "SERIALIZABLE"})
+                # Add the user message
+                session.add(user_message)
+                # Add the AI response
+                ai_message = ChatMessageModel(content=entire_response, thread_id=thread_id, role=Role.ai)
+                session.add(ai_message)
+                session.commit()
+        except Exception as e:
+            # If something goes wrong, nothing gets committed
+            # Re-raise the exception to be handled by FastAPI
+            raise e
+
+    return StreamingResponse(
+        response_generator(),
+        media_type="text/plain",
+    )
 
 def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessage]:
     """
@@ -111,7 +139,7 @@ def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessa
     return [ChatMessage(content=message.content, role=message.role) for message in messages]
 
 
-def generate_response(messages: List[ChatMessage]) -> ChatMessage:
+def generate_response(messages: List[ChatMessage]) -> Generator[str, None, None]:
     """
     Generate a response to the chat messages
     """
@@ -119,9 +147,13 @@ def generate_response(messages: List[ChatMessage]) -> ChatMessage:
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=_convert_messages_to_openai_format(messages),
+        stream=True,
     )
-    response_msg = response.choices[0].message.content
-    return ChatMessage(content=response_msg, role=Role.ai)
+    for chunk in response:
+        if chunk.choices[0].finish_reason == "stop":
+            break
+        if chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
 
 def _convert_messages_to_openai_format(messages: List[ChatMessage]) -> List[dict]:
     resp = []

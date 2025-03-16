@@ -27,8 +27,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
         setThreads(threadsData);
         // Create a new thread placeholder to start an empty conversation
         // similar to ChatGPT
-        console.log("WE IN HERE AGAIN?");
-        createNewThread("fetchThreadsAndInitiateEmptyConversation");
+        createNewThread();
       } else {
         console.error(response.error);
       }
@@ -39,8 +38,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   
-  const createNewThread = (from: string): void => {
-    console.log("Creating a new thread from: ", from);
+  const createNewThread = (): void => {
     const newThread: ChatThread = {
       id: null,
       name: "New conversation",
@@ -107,7 +105,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
             <h2 className={styles.sidebarHeaderTitle}>Chats</h2>
             <button 
               className={styles.newChatButton} 
-              onClick={() => createNewThread("sidebarNEWCHATButton")}
+              onClick={() => createNewThread()}
               disabled={threadId === null}
             >
               + New Chat

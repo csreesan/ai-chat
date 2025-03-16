@@ -37,15 +37,52 @@ export const useChatMessages = (
     setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
 
     try {
+      // Create a placeholder for the AI message
+      const aiPlaceholder: ChatMessage = { content: '', role: 'ai' };
+      setMessages((prev: ChatMessage[]) => [...prev, aiPlaceholder]);
+      
       const response = await submitChatMessage({
+        parseAs: 'stream',
         body: userMessage,
         path: { thread_id: currentThreadId! }
       });
-      if (response.data) {
-        setMessages((prev: ChatMessage[]) => [...prev, response.data!]);
+      console.log("RESPONSE: ", response);
+      
+      if (response.data && response.data instanceof ReadableStream) {
+        // Handle streaming response
+        const reader = response.data.getReader();
+        let done = false;
+        
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          
+          if (value) {
+            // Decode the Uint8Array to a string
+            const text = new TextDecoder().decode(value);
+            
+            // Update the AI message content as chunks arrive
+            setMessages((prev: ChatMessage[]) => {
+              const updated = [...prev];
+              const lastMessage = updated[updated.length - 1];
+              updated[updated.length - 1].content = lastMessage.content + text;
+              return updated;
+            });
+          }
+        }
+      } else if (response.data) {
+        // Handle non-streaming response (fallback)
+        setMessages((prev: ChatMessage[]) => {
+          // Replace the placeholder with the actual response
+          const updated = [...prev];
+          updated[updated.length - 1] = response.data!;
+          return updated;
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      // Remove the placeholder message on error
+      setMessages((prev: ChatMessage[]) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
