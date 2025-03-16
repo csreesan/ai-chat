@@ -1,0 +1,134 @@
+.chatSidebar {
+    position: relative;
+    height: 100vh;
+    transition: width 0.3s ease;
+    background-color: #bb7466;
+    color: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+  
+.chatSidebar.open {
+  width: 20vw;
+}
+
+.chatSidebar.closed {
+  width: 5vw;
+}
+
+.sidebarToggle {
+  margin: 1vh 1vw;
+  position: relative;
+  width: 2vw;
+  height: 3vh;
+  border-radius: 20%;
+  background-color: #c03216;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0;
+}
+
+.sidebarHeader {
+  margin-left: 1vw;
+  margin-right: 1vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebarHeaderTitle {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.newChatButton {
+  background-color: #810b1f;
+  color: white;
+  border: none;
+  padding: 1vh;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.5vh;
+  font-weight: 500;
+}
+
+.newChatButton:not(:disabled):hover {
+  background-color: #940c69;
+}
+
+.newChatButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.searchContainer {
+  margin-bottom: 1vh;
+  margin-left: 1vw;
+  margin-right: 1vw;
+  display: flex;
+  justify-content: center;
+}
+
+.searchInput {
+  padding: 1vh;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  font-size: 14px;
+  width: 100%;
+  background-color: #44170e;
+}
+
+.threads-list {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.threadItem {
+  padding: 1vh;
+  border-radius: 1vh;
+  margin: 1vh;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.threadItem:hover {
+  background-color: #f0f0f0;
+}
+
+.threadItem.active {
+  background-color: #f6cdc8;
+  color: rgb(99, 98, 98);
+}
+
+.threadContent {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.threadTitle {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noResults {
+  color: #888;
+  text-align: center;
+  padding: 20px 0;
+}

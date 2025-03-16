@@ -1,0 +1,49 @@
+.inputContainer {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 800px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+}
+
+.textarea {
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  font-size: 16px;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: auto;
+  max-height: 200px;
+  background: #d6cdcd;
+  color: #5f5e5e;
+  border-radius: 6px;
+}
+
+.submitButton {
+  background: #c84507;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.submitButton.disabled {
+  background: #caa492;
+  cursor: default;
+} 

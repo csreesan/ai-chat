@@ -1,0 +1,127 @@
+openapi: 3.0.3
+info:
+  title: Simple Chat API
+  description: API for a chat application with a single endpoint
+  version: 1.0.0
+  
+servers:
+  - url: https://chat.chrissreesangkom.com/api
+    description: Production server
+  - url: http://localhost:8000
+    description: Development server
+
+paths:
+  /thread/{thread_id}/chat:
+    parameters:
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The unique identifier of the thread
+    get:
+      summary: Get all chat messages
+      operationId: getChatMessages
+      tags:
+        - Chat
+      responses:
+        '200':
+          description: Chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessage'
+    post:
+      summary: Submit a chat message and get a response
+      operationId: submitChatMessage
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+      responses:
+        '200':
+          description: Chat message response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /thread:
+    post:
+      summary: Create a new thread
+      operationId: createThread
+      tags:
+        - Chat
+      responses:
+        '200':
+          description: Thread created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+    get:
+      summary: Get all threads
+      operationId: getThreads
+      tags:
+        - Chat
+      responses:
+        '200':
+          description: Threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thread'
+                    
+components:
+  schemas:
+    Thread:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ChatMessage:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: The text content of the message
+        role:
+          type: string
+          description: The role of the message sender
+          enum:
+            - user
+            - ai
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string

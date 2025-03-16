@@ -1,0 +1,30 @@
+[project]
+name = "chat-server"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Chris Sreesangkom",email = "csreesan@berkeley.edu"}
+]
+readme = "README.md"
+requires-python = ">=3.10,<4.0.0"
+dependencies = [
+    "fastapi (>=0.115.11,<0.116.0)",
+    "uvicorn (>=0.34.0,<0.35.0)",
+    "sqlmodel (>=0.0.24,<0.0.25)",
+    "pydantic (>=2.10.6,<3.0.0)",
+    "python-dotenv (>=1.0.1,<2.0.0)",
+    "psycopg (>=3.2.6,<4.0.0)",
+    "openai (>=1.66.3,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "chat_server", from = "src"}]
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+fastapi-code-generator = {version = "^0.5.2", python = ">=3.10,<4.0.0"}
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

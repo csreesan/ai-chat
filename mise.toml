@@ -1,0 +1,49 @@
+[tools]
+poetry = { version="2.1.1", pyproject="{{ config_root }}/pyproject.toml" }
+python = "3.10.13"
+node = "22.14.0"
+
+[tasks.frontend-install]
+run = "npm install"
+dir = "{{ config_root }}/chat-ui"
+
+[tasks.frontend-dev]
+run = "npm run dev"
+depends = ["frontend-install"]
+dir = "{{ config_root }}/chat-ui"
+
+[tasks.server-lock]
+run = "poetry lock"
+dir = "{{ config_root }}/chat-server"
+
+[tasks.server-install]
+run = "poetry install"
+dir = "{{ config_root }}/chat-server"
+depends = ["server-lock"]
+
+
+[tasks.server-dev]
+run = "poetry run uvicorn src.chat_server.main:app --reload --host 0.0.0.0 --port 8000"
+depends = ["server-install"]
+dir = "{{ config_root }}/chat-server"
+
+[tasks.full-dev]
+depends = ["frontend-dev", "server-dev", "docker-compose"]
+
+[tasks.docker-compose]
+run = "docker compose up -d"
+dir = "{{ config_root }}"
+
+[tasks.server-generate-types]
+run = "poetry run fastapi-codegen --input {{ config_root }}/api-spec/openapi.yaml --output {{ config_root }}/chat-server/src/chat_server/generated"
+depends = ["server-install"]
+dir = "{{ config_root }}/chat-server"
+
+
+[tasks.frontend-generate-types]
+run = "npm run generate-types"
+depends = ["frontend-install"]
+dir = "{{ config_root }}/chat-ui"
+
+[tasks.generate-types]
+depends = ["server-generate-types", "frontend-generate-types"]

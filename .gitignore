@@ -1,0 +1,5 @@
+# Frontend
+chat-ui/node_modules
+
+# Backend
+**/__pycache__/
