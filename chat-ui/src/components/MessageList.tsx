@@ -2,7 +2,6 @@ import { ChatMessage } from '../client';
 import styles from './MessageList.module.css';
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -28,7 +27,6 @@ const MessageList = ({ messages }: MessageListProps) => {
           className={msg.role === 'user' ? styles.userMessage : styles.aiMessage}
         >
           <ReactMarkdown 
-            remarkPlugins={[remarkGfm]} 
           >
             {msg.content}
           </ReactMarkdown>

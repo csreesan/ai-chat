@@ -46,12 +46,12 @@ export const useChatMessages = (
         body: userMessage,
         path: { thread_id: currentThreadId! }
       });
-      console.log("RESPONSE: ", response);
       
       if (response.data && response.data instanceof ReadableStream) {
         // Handle streaming response
         const reader = response.data.getReader();
         let done = false;
+        let accumulatedText = '';
         
         while (!done) {
           const { value, done: doneReading } = await reader.read();
@@ -60,12 +60,15 @@ export const useChatMessages = (
           if (value) {
             // Decode the Uint8Array to a string
             const text = new TextDecoder().decode(value);
+            accumulatedText += text;
             
-            // Update the AI message content as chunks arrive
+            // Update the AI message content with the full accumulated text
             setMessages((prev: ChatMessage[]) => {
               const updated = [...prev];
-              const lastMessage = updated[updated.length - 1];
-              updated[updated.length - 1].content = lastMessage.content + text;
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: accumulatedText
+              };
               return updated;
             });
           }
