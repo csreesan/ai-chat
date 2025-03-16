@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const CurrentThreadContext = createContext<{
   threadId: string | null;
@@ -9,7 +9,23 @@ const CurrentThreadContext = createContext<{
 });
 
 export function CurrentThreadProvider({ children }: { children: React.ReactNode }) {
-  const [threadId, setThreadId] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<string | null>(() => {
+    // Initialize from localStorage if available
+    const storedThreadId = localStorage.getItem('currentThreadId');
+    console.log("Stored threadId: ", storedThreadId);
+    return storedThreadId || null;
+  });
+
+  // Update localStorage when threadId changes
+  useEffect(() => {
+    if (threadId) {
+      console.log("Setting threadId to localStorage: ", threadId);
+      localStorage.setItem('currentThreadId', threadId);
+    } else {
+      localStorage.removeItem('currentThreadId');
+    }
+  }, [threadId]);
+ 
   return (
     <CurrentThreadContext.Provider value={{ threadId, setThreadId }}>
       {children}

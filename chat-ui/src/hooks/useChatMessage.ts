@@ -65,10 +65,7 @@ export const useChatMessages = (
             // Update the AI message content with the full accumulated text
             setMessages((prev: ChatMessage[]) => {
               const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...updated[updated.length - 1],
-                content: accumulatedText
-              };
+              updated[updated.length - 1].content = accumulatedText;
               return updated;
             });
           }

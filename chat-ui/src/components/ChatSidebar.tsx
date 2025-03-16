@@ -26,8 +26,12 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
         }));
         setThreads(threadsData);
         // Create a new thread placeholder to start an empty conversation
-        // similar to ChatGPT
-        createNewThread();
+        // similar to ChatGPT if no thread is selected.
+        if (threadId === null) {
+          createNewThread();
+        } else {
+          handleThreadSelect(threadId, threadsData);
+        }
       } else {
         console.error(response.error);
       }
@@ -65,14 +69,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
   };
 
   // Handle thread selection
-  const handleThreadSelect = (id: string): void => {
-    const selectedThread = threads.find(thread => thread.id === id);
+  // allow fetch threads optional to be passed in for when it's in the same render cycle
+  const handleThreadSelect = (id: string, fetchedThreads?: ChatThread[]): void => {
+    const threadList = fetchedThreads || threads;
+    const selectedThread = threadList.find(thread => thread.id === id);
     if (!selectedThread) {
       console.error(`Attempted to select non-existent thread with ID: ${id}`);
       return;
     }
 
-    const otherThreads = threads.filter(thread => thread.id !== id && thread.id !== null);
+    const otherThreads = threadList.filter(thread => thread.id !== id && thread.id !== null);
     const updatedThreads = [
       { ...selectedThread, isActive: true },
       ...otherThreads.map(thread => ({ ...thread, isActive: false }))
