@@ -43,13 +43,23 @@ const TextInput: React.FC<TextInputProps> = ({
           rows={1}
           className={styles.textarea}
         />
-        <button
-          type="submit"
-          disabled={!inputValue.trim() || disabled}
-          className={`${styles.submitButton} ${!inputValue.trim() || disabled ? styles.disabled : ''}`}
-        >
-          Send
+        <div className={styles.buttonsContainer}>
+          <select
+            className={styles.modelSelect}
+            disabled={disabled}
+            defaultValue="gpt-4o-mini"
+          >
+            <option value="gpt-4o">GPT 4o</option>
+            <option value="claude-3-7-sonnet">Claude 3.7 Sonnet</option>
+          </select>
+          <button
+            type="submit"
+            disabled={!inputValue.trim() || disabled}
+            className={`${styles.submitButton} ${!inputValue.trim() || disabled ? styles.disabled : ''}`}
+          >
+            Send
         </button>
+        </div>
       </form>
     </div>
   );

@@ -2,7 +2,7 @@ import os
 import random
 from typing import Generator, List, Union
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
