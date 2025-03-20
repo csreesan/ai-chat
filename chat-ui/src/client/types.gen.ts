@@ -17,6 +17,14 @@ export type ChatMessage = {
     role?: 'user' | 'ai';
 };
 
+export type SubmitChatMessageRequest = {
+    content: string;
+    /**
+     * The model to use for the chat message
+     */
+    model: 'gpt-4o-mini' | 'gpt-4o' | 'claude-3-7-sonnet-20250219' | 'claude-3-5-sonnet-20241022';
+};
+
 export type _Error = {
     code: string;
     message: string;
@@ -44,7 +52,7 @@ export type GetChatMessagesResponses = {
 export type GetChatMessagesResponse = GetChatMessagesResponses[keyof GetChatMessagesResponses];
 
 export type SubmitChatMessageData = {
-    body: ChatMessage;
+    body: SubmitChatMessageRequest;
     path: {
         /**
          * The unique identifier of the thread

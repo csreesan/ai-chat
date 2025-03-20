@@ -11,8 +11,7 @@ export const useChatMessages = (
   const [error, setError] = useState<string | null>(null);
   const { threadId, setThreadId } = useCurrentThread();
 
-  const addMessage = async (text: string) => {
-    
+  const addMessage = async (text: string, model: 'gpt-4o-mini' | 'gpt-4o' | 'claude-3-7-sonnet-20250219' | 'claude-3-5-sonnet-20241022') => {
     // Send to API and add AI response
     setIsLoading(true);
     setError(null);
@@ -43,7 +42,10 @@ export const useChatMessages = (
       
       const response = await submitChatMessage({
         parseAs: 'stream',
-        body: userMessage,
+        body: {
+          content: userMessage.content,
+          model: model,
+        },
         path: { thread_id: currentThreadId! }
       });
       

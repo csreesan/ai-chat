@@ -1,18 +1,19 @@
 import os
 import random
-from typing import Generator, List, Union
+from typing import List, Union
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 
-from openai import OpenAI
+from chat_server.llm.factory import llm_factory
 
 from sqlmodel import Session, create_engine, select, SQLModel
 
-from .generated.models import ChatMessage, Error, Role, Thread
-from .models.chat import ChatMessage as ChatMessageModel
-from .models.thread import Thread as ThreadModel
+from chat_server.generated.models import ChatMessage, Error, Role, Thread, SubmitChatMessageRequest
+from chat_server.models.chat import ChatMessage as ChatMessageModel
+from chat_server.models.thread import Thread as ThreadModel
+from chat_server.utils.logging import logger
 
 from dotenv import load_dotenv
 
@@ -85,25 +86,26 @@ def get_chat_messages(thread_id: str) -> List[ChatMessage]:
     response_model=None,
     tags=['Chat'],
 )
-def submit_chat_message(thread_id: str, body: ChatMessage) -> Union[StreamingResponse, Error]:
+def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union[StreamingResponse, Error]:
     """
     Submit a chat message and get a streaming response
     """
     # Create the user message but don't commit it yet
-    user_message = ChatMessageModel(content=body.content, thread_id=thread_id, role=body.role)
+    llm = llm_factory(body.model)
+    user_message = ChatMessageModel(content=body.content, thread_id=thread_id, role=Role.user)
 
     # Get existing messages for context
     with Session(engine) as session:
         existing_messages = _get_entire_chat_history(session, thread_id)
 
     # Add the new user message to the context for the AI
-    messages = existing_messages + [ChatMessage(content=body.content, role=body.role)]
+    messages = existing_messages + [ChatMessage(content=body.content, role=Role.user)]
 
     # Create a generator function for the streaming response
     def response_generator():
         entire_response = ""
         try:
-            response = generate_response(messages)
+            response = llm.get_stream_generator(messages)
             for chunk in response:
                 entire_response += chunk
                 yield chunk
@@ -138,30 +140,10 @@ def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessa
     ).all()
     return [ChatMessage(content=message.content, role=message.role) for message in messages]
 
-
-def generate_response(messages: List[ChatMessage]) -> Generator[str, None, None]:
+@app.exception_handler(Exception)
+def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """
-    Generate a response to the chat messages
+    Global exception handler
     """
-    client = OpenAI()
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=_convert_messages_to_openai_format(messages),
-        stream=True,
-    )
-    for chunk in response:
-        if chunk.choices[0].finish_reason == "stop":
-            break
-        if chunk.choices[0].delta.content:
-            yield chunk.choices[0].delta.content
-
-def _convert_messages_to_openai_format(messages: List[ChatMessage]) -> List[dict]:
-    resp = []
-    for m in messages:
-        if m.role == Role.user:
-            resp.append({"role": "user", "content": m.content})
-        elif m.role == Role.ai:
-            resp.append({"role": "assistant", "content": m.content})
-        else:
-            raise ValueError(f"Invalid message role: {m.role}")
-    return resp
+    logger.error(f"Error: {exc}")
+    return JSONResponse(status_code=500, content={"error": str(exc)})
