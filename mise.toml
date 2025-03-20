@@ -45,7 +45,7 @@ depends = ["server-install"]
 dir = "{{ config_root }}/chat-server"
 
 [tasks.server-format]
-run = "poetry run ruff format {{ config_root }}/chat-server"
+run = "poetry run ruff format {{ config_root }}/chat-server && poetry run ruff check --select I --fix {{ config_root }}/chat-server"
 depends = ["server-install"]
 dir = "{{ config_root }}/chat-server"
 

@@ -2,20 +2,17 @@ import os
 import random
 from typing import List, Union
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from sqlmodel import Session, SQLModel, create_engine, select
 
+from chat_server.generated.models import ChatMessage, Error, Role, SubmitChatMessageRequest, Thread
 from chat_server.llm.factory import llm_factory
-
-from sqlmodel import Session, create_engine, select, SQLModel
-
-from chat_server.generated.models import ChatMessage, Error, Role, Thread, SubmitChatMessageRequest
 from chat_server.models.chat import ChatMessage as ChatMessageModel
 from chat_server.models.thread import Thread as ThreadModel
 from chat_server.utils.logging import logger
-
-from dotenv import load_dotenv
 
 load_dotenv()
 

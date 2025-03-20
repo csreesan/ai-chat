@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Generator, Generic, TypeVar
+
 from chat_server.generated.models import ChatMessage
 
 T = TypeVar("T")

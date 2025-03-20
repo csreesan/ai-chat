@@ -2,9 +2,9 @@ from typing import Generator, Literal
 
 from anthropic import Anthropic
 from anthropic.types.message_param import MessageParam
-from chat_server.generated.models import Role
+
+from chat_server.generated.models import ChatMessage, Model, Role
 from chat_server.llm.llm import LLM
-from chat_server.generated.models import ChatMessage, Model
 
 
 class AnthropicModels(LLM):
