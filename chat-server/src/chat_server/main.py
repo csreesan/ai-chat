@@ -65,7 +65,6 @@ def get_threads() -> List[Thread]:
     """
     Get all threads
     """
-    print("Getting threads")
     with Session(engine) as session:
         threads = session.exec(select(ThreadModel)).all()
         return [Thread(id=thread.id, name=thread.name, created_at=thread.created_at) for thread in threads]
