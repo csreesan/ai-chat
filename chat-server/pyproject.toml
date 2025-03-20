@@ -25,7 +25,26 @@ packages = [{include = "chat_server", from = "src"}]
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
 fastapi-code-generator = {version = "^0.5.2", python = ">=3.10,<4.0.0"}
+ruff = "^0.11.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+exclude = [
+    "generated",
+]
+
+[tool.ruff.lint]
+select = [
+    "ALL", # include all the rules, including new ones
+]
+ignore = [
+    "D104", # missing docstring for public package
+    "D203", # conflicts with D211 (no-blank-line-before-class)
+    "D213", # conflicts with D212 (multi-line-summary-first-line)
+    "COM812", # conflicts with formatter trailing comma rules
+]
+

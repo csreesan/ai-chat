@@ -39,6 +39,15 @@ run = "poetry run fastapi-codegen --input {{ config_root }}/api-spec/openapi.yam
 depends = ["server-install"]
 dir = "{{ config_root }}/chat-server"
 
+[tasks.server-lint]
+run = "poetry run ruff check {{ config_root }}/chat-server"
+depends = ["server-install"]
+dir = "{{ config_root }}/chat-server"
+
+[tasks.server-format]
+run = "poetry run ruff format {{ config_root }}/chat-server"
+depends = ["server-install"]
+dir = "{{ config_root }}/chat-server"
 
 [tasks.frontend-generate-types]
 run = "npm run generate-types"

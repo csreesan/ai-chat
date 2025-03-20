@@ -1,7 +1,11 @@
 from typing import Generator, Literal
 
 from openai import OpenAI
-from openai.types.chat import ChatCompletionAssistantMessageParam, ChatCompletionMessageParam, ChatCompletionUserMessageParam
+from openai.types.chat import (
+    ChatCompletionAssistantMessageParam,
+    ChatCompletionMessageParam,
+    ChatCompletionUserMessageParam,
+)
 
 from chat_server.generated.models import Role
 from chat_server.llm.llm import LLM
@@ -10,7 +14,7 @@ from chat_server.generated.models import ChatMessage, Model
 
 class OpenAIModels(LLM):
     def __init__(self, model_name: Literal[Model.gpt_4o_mini, Model.gpt_4o]) -> None:
-       self.model_name = model_name.value
+        self.model_name = model_name.value
 
     def convert_messages(self, messages: list[ChatMessage]) -> list[ChatCompletionMessageParam]:
         formatted_messages = []

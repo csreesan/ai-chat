@@ -5,12 +5,11 @@ from anthropic.types.message_param import MessageParam
 from chat_server.generated.models import Role
 from chat_server.llm.llm import LLM
 from chat_server.generated.models import ChatMessage, Model
-from chat_server.utils.logging import logger
 
 
 class AnthropicModels(LLM):
     def __init__(self, model_name: Literal[Model.claude_3_7_sonnet_20250219, Model.claude_3_5_sonnet_20241022]) -> None:
-       self.model_name = model_name.value
+        self.model_name = model_name.value
 
     def convert_messages(self, messages: list[ChatMessage]) -> list[MessageParam]:
         formatted_messages = []

@@ -25,15 +25,15 @@ SQLModel.metadata.create_all(engine)
 
 
 app = FastAPI(
-    title='Simple Chat API',
-    description='API for a chat application with a single endpoint',
-    version='1.0.0',
+    title="Simple Chat API",
+    description="API for a chat application with a single endpoint",
+    version="1.0.0",
     servers=[
         {
-            'url': 'https://chat.chrissreesangkom.com/api',
-            'description': 'Production server',
+            "url": "https://chat.chrissreesangkom.com/api",
+            "description": "Production server",
         },
-        {'url': 'http://localhost:8000', 'description': 'Development server'},
+        {"url": "http://localhost:8000", "description": "Development server"},
     ],
 )
 
@@ -47,7 +47,7 @@ app.add_middleware(
 )
 
 
-@app.post('/thread', response_model=Thread, tags=['Chat'])
+@app.post("/thread", response_model=Thread, tags=["Chat"])
 def create_thread() -> Thread:
     """
     Create a new thread
@@ -60,7 +60,8 @@ def create_thread() -> Thread:
         session.refresh(thread)
     return Thread(id=thread.id, name=thread.name, created_at=thread.created_at)
 
-@app.get('/thread', response_model=List[Thread], tags=['Chat'])
+
+@app.get("/thread", response_model=List[Thread], tags=["Chat"])
 def get_threads() -> List[Thread]:
     """
     Get all threads
@@ -70,7 +71,7 @@ def get_threads() -> List[Thread]:
         return [Thread(id=thread.id, name=thread.name, created_at=thread.created_at) for thread in threads]
 
 
-@app.get('/thread/{thread_id}/chat', response_model=List[ChatMessage], tags=['Chat'])
+@app.get("/thread/{thread_id}/chat", response_model=List[ChatMessage], tags=["Chat"])
 def get_chat_messages(thread_id: str) -> List[ChatMessage]:
     """
     Get all chat messages
@@ -79,11 +80,12 @@ def get_chat_messages(thread_id: str) -> List[ChatMessage]:
         messages = _get_entire_chat_history(session, thread_id)
         return [ChatMessage(content=message.content, role=message.role) for message in messages]
 
+
 @app.post(
-    '/thread/{thread_id}/chat',
-    responses={'400': {'model': Error}},
+    "/thread/{thread_id}/chat",
+    responses={"400": {"model": Error}},
     response_model=None,
-    tags=['Chat'],
+    tags=["Chat"],
 )
 def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union[StreamingResponse, Error]:
     """
@@ -128,16 +130,20 @@ def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union
         media_type="text/plain",
     )
 
+
 def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessage]:
     """
     Get the entire chat history
     """
     messages = session.exec(
-        select(ChatMessageModel).where(
+        select(ChatMessageModel)
+        .where(
             ChatMessageModel.thread_id == thread_id,
-        ).order_by(ChatMessageModel.created_at),
+        )
+        .order_by(ChatMessageModel.created_at),
     ).all()
     return [ChatMessage(content=message.content, role=message.role) for message in messages]
+
 
 @app.exception_handler(Exception)
 def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:

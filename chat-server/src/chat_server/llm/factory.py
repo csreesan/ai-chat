@@ -6,8 +6,10 @@ from chat_server.generated.models import Model
 OPENAI_MODELS = [Model.gpt_4o_mini, Model.gpt_4o]
 ANTHROPIC_MODELS = [Model.claude_3_7_sonnet_20250219, Model.claude_3_5_sonnet_20241022]
 
+
 class InvalidModelError(Exception):
     pass
+
 
 def llm_factory(model_name: Model) -> LLM:
     if model_name in OPENAI_MODELS:
