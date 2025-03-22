@@ -1,4 +1,4 @@
-from typing import Generator, Literal
+from collections.abc import Generator, Literal
 
 from openai import OpenAI
 from openai.types.chat import (
@@ -8,7 +8,7 @@ from openai.types.chat import (
 )
 
 from chat_server.generated.models import ChatMessage, Model, Role
-from chat_server.llm.llm import LLM
+from chat_server.llm.llm import LLM, InvalidMessageRoleError
 
 
 class OpenAIModels(LLM):
@@ -33,7 +33,8 @@ class OpenAIModels(LLM):
                     )
                 )
             else:
-                raise ValueError(f"Invalid message role: {m.role}")
+                invalid_message_role_error = f"Invalid message role: {m.role}"
+                raise InvalidMessageRoleError(invalid_message_role_error)
         return formatted_messages
 
     def response_generator(self, messages: list[ChatCompletionMessageParam]) -> Generator[str, None, None]:

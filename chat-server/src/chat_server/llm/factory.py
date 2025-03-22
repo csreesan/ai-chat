@@ -14,7 +14,7 @@ class InvalidModelError(Exception):
 def llm_factory(model_name: Model) -> LLM:
     if model_name in OPENAI_MODELS:
         return OpenAIModels(model_name)
-    elif model_name in ANTHROPIC_MODELS:
+    if model_name in ANTHROPIC_MODELS:
         return AnthropicModels(model_name)
-    else:
-        raise InvalidModelError(f"Invalid model name: {model_name}")
+    invalid_model_error = f"Invalid model name: {model_name}"
+    raise InvalidModelError(invalid_model_error)

@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Generator, Generic, TypeVar
+from collections.abc import Generator
+from typing import Generic, TypeVar
 
 from chat_server.generated.models import ChatMessage
 
 T = TypeVar("T")
+
+
+class InvalidMessageRoleError(Exception):
+    pass
 
 
 class LLM(ABC, Generic[T]):

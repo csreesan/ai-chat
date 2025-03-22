@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Index, SQLModel
 
 
 class ChatMessage(SQLModel, table=True):
@@ -12,6 +12,4 @@ class ChatMessage(SQLModel, table=True):
     role: str
     model: str | None = Field(default=None)
 
-    class Config:
-        table = True
-        indexes = [("thread_id", "created_at")]
+    __table_args__ = Index("thread_id_created_at_index", "thread_id", "created_at")

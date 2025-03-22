@@ -1,10 +1,10 @@
-from typing import Generator, Literal
+from collections.abc import Generator, Literal
 
 from anthropic import Anthropic
 from anthropic.types.message_param import MessageParam
 
 from chat_server.generated.models import ChatMessage, Model, Role
-from chat_server.llm.llm import LLM
+from chat_server.llm.llm import LLM, InvalidMessageRoleError
 
 
 class AnthropicModels(LLM):
@@ -29,7 +29,8 @@ class AnthropicModels(LLM):
                     )
                 )
             else:
-                raise ValueError(f"Invalid message role: {m.role}")
+                invalid_message_role_error = f"Invalid message role: {m.role}"
+                raise InvalidMessageRoleError(invalid_message_role_error)
         return formatted_messages
 
     def response_generator(self, messages: list[MessageParam]) -> Generator[str, None, None]:
@@ -39,5 +40,4 @@ class AnthropicModels(LLM):
             model=self.model_name,
             messages=messages,
         ) as stream:
-            for chunk in stream.text_stream:
-                yield chunk
+            yield from stream.text_stream

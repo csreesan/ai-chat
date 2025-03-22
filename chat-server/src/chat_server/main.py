@@ -1,6 +1,6 @@
 import os
 import random
-from typing import Generator, List, Union
+from collections.abc import Generator
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -44,12 +44,9 @@ app.add_middleware(
 )
 
 
-@app.post("/thread", response_model=Thread, tags=["Chat"])
+@app.post("/thread", tags=["Chat"])
 def create_thread() -> Thread:
-    """
-    Create a new thread
-    """
-    thread_name = "New Thread Name " + str(random.randint(0, 100))
+    thread_name = f"New Thread Name {random.randint(0, 100)}"  # noqa: S311
     thread = ThreadModel(name=thread_name)
     with Session(engine) as session:
         session.add(thread)
@@ -58,21 +55,15 @@ def create_thread() -> Thread:
     return Thread(id=thread.id, name=thread.name, created_at=thread.created_at)
 
 
-@app.get("/thread", response_model=List[Thread], tags=["Chat"])
-def get_threads() -> List[Thread]:
-    """
-    Get all threads
-    """
+@app.get("/thread", tags=["Chat"])
+def get_threads() -> list[Thread]:
     with Session(engine) as session:
         threads = session.exec(select(ThreadModel)).all()
         return [Thread(id=thread.id, name=thread.name, created_at=thread.created_at) for thread in threads]
 
 
-@app.get("/thread/{thread_id}/chat", response_model=List[ChatMessage], tags=["Chat"])
-def get_chat_messages(thread_id: str) -> List[ChatMessage]:
-    """
-    Get all chat messages
-    """
+@app.get("/thread/{thread_id}/chat", rtags=["Chat"])
+def get_chat_messages(thread_id: str) -> list[ChatMessage]:
     with Session(engine) as session:
         if not _check_thread_exists(session, thread_id):
             raise HTTPException(status_code=404, detail="Thread not found")
@@ -90,10 +81,7 @@ def _check_thread_exists(session: Session, thread_id: str) -> bool:
     response_model=None,
     tags=["Chat"],
 )
-def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union[StreamingResponse, Error]:
-    """
-    Submit a chat message and get a streaming response
-    """
+def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> StreamingResponse | Error:
     # Create the user message but don't commit it yet
     llm = llm_factory(body.model)
     user_message = ChatMessageModel(content=body.content, thread_id=thread_id, role=Role.user)
@@ -138,10 +126,7 @@ def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union
     )
 
 
-def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessage]:
-    """
-    Get the entire chat history
-    """
+def _get_entire_chat_history(session: Session, thread_id: str) -> list[ChatMessage]:
     messages = session.exec(
         select(ChatMessageModel)
         .where(
@@ -160,9 +145,6 @@ def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessa
 
 
 @app.exception_handler(Exception)
-def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """
-    Global exception handler
-    """
+def global_exception_handler(_: Request, exc: Exception) -> JSONResponse:
     logger.error(f"Error: {exc}")
     return JSONResponse(status_code=500, content={"error": str(exc)})
