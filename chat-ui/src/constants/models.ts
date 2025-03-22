@@ -8,12 +8,12 @@ type ModelInfo = {
 // Map of backend model names to their display information
 export const MODEL_INFO: Record<SubmitChatMessageRequest['model'], ModelInfo> = {
   'gpt-4o-mini': {
-    displayName: 'GPT-4 Turbo Mini',
-    description: 'Smaller, faster version of GPT-4 Turbo',
+    displayName: 'GPT-4o Mini',
+    description: 'Smaller, faster version of GPT-4o',
   },
   'gpt-4o': {
-    displayName: 'GPT-4 Turbo',
-    description: 'Latest version of GPT-4 Turbo',
+    displayName: 'GPT-4o',
+    description: 'Latest version of GPT-4o',
   },
   'claude-3-7-sonnet-20250219': {
     displayName: 'Claude 3.7 Sonnet',

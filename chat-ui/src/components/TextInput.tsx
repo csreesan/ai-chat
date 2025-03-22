@@ -48,6 +48,13 @@ const TextInput: React.FC<TextInputProps> = ({
           className={styles.textarea}
         />
         <div className={styles.buttonsContainer}>
+          <button
+            type="submit"
+            disabled={!inputValue.trim() || disabled}
+            className={`${styles.submitButton} ${!inputValue.trim() || disabled ? styles.disabled : ''}`}
+          >
+            Send
+          </button>
           <select
             className={styles.modelSelect}
             disabled={disabled}
@@ -60,13 +67,6 @@ const TextInput: React.FC<TextInputProps> = ({
               </option>
             ))}
           </select>
-          <button
-            type="submit"
-            disabled={!inputValue.trim() || disabled}
-            className={`${styles.submitButton} ${!inputValue.trim() || disabled ? styles.disabled : ''}`}
-          >
-            Send
-          </button>
         </div>
       </form>
     </div>
