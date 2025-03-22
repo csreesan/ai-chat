@@ -105,6 +105,7 @@ components:
       type: object
       required:
         - content
+        - role
       properties:
         content:
           type: string
@@ -115,6 +116,9 @@ components:
           enum:
             - user
             - ai
+        model:
+          type: string
+          description: The model used to generate the message
     SubmitChatMessageRequest:
       type: object
       required:

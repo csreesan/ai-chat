@@ -1,8 +1,10 @@
 import React, { useState, KeyboardEvent, ChangeEvent, FormEvent } from 'react';
+import type { SubmitChatMessageRequest } from '../client/types.gen';
+import { AVAILABLE_MODELS } from '../constants/models';
 import styles from './TextInput.module.css';
 
 interface TextInputProps {
-  onSubmit: (message: string, model: string) => void;
+  onSubmit: (message: string, model: SubmitChatMessageRequest['model']) => void;
   disabled: boolean;
   placeholder?: string;
 }
@@ -12,9 +14,9 @@ const TextInput: React.FC<TextInputProps> = ({
   disabled,
   placeholder = "Message..." 
 }) => {
-  const defaultModel = 'gpt-4o-mini';
+  const defaultModel: SubmitChatMessageRequest['model'] = AVAILABLE_MODELS[0].value as SubmitChatMessageRequest['model'];
   const [inputValue, setInputValue] = useState<string>('');
-  const [model, setModel] = useState<string>(defaultModel);
+  const [model, setModel] = useState<SubmitChatMessageRequest['model']>(defaultModel);
   
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,13 +51,14 @@ const TextInput: React.FC<TextInputProps> = ({
           <select
             className={styles.modelSelect}
             disabled={disabled}
-            defaultValue={defaultModel}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) => setModel(e.target.value)}
+            value={model}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => setModel(e.target.value as SubmitChatMessageRequest['model'])}
           >
-            <option value="gpt-4o-mini">GPT 4o Mini</option>
-            <option value="gpt-4o">GPT 4o</option>
-            <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet</option>
-            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+            {AVAILABLE_MODELS.map(model => (
+              <option key={model.value} value={model.value} title={model.description}>
+                {model.displayName}
+              </option>
+            ))}
           </select>
           <button
             type="submit"

@@ -75,6 +75,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
     const selectedThread = threadList.find(thread => thread.id === id);
     if (!selectedThread) {
       console.error(`Attempted to select non-existent thread with ID: ${id}`);
+      setThreadId(null);
+      createNewThread();
       return;
     }
 

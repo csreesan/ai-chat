@@ -37,7 +37,7 @@ export const useChatMessages = (
 
     try {
       // Create a placeholder for the AI message
-      const aiPlaceholder: ChatMessage = { content: '', role: 'ai' };
+      const aiPlaceholder: ChatMessage = { content: '', role: 'ai', model: model };
       setMessages((prev: ChatMessage[]) => [...prev, aiPlaceholder]);
       
       const response = await submitChatMessage({

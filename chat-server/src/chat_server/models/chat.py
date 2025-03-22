@@ -10,6 +10,7 @@ class ChatMessage(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     thread_id: str = Field(foreign_key="thread.id", index=True)
     role: str
+    model: str | None = Field(default=None)
 
     class Config:
         table = True

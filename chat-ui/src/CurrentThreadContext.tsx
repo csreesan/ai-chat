@@ -12,14 +12,12 @@ export function CurrentThreadProvider({ children }: { children: React.ReactNode 
   const [threadId, setThreadId] = useState<string | null>(() => {
     // Initialize from localStorage if available
     const storedThreadId = localStorage.getItem('currentThreadId');
-    console.log("Stored threadId: ", storedThreadId);
     return storedThreadId || null;
   });
 
   // Update localStorage when threadId changes
   useEffect(() => {
     if (threadId) {
-      console.log("Setting threadId to localStorage: ", threadId);
       localStorage.setItem('currentThreadId', threadId);
     } else {
       localStorage.removeItem('currentThreadId');

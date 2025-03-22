@@ -14,7 +14,11 @@ export type ChatMessage = {
     /**
      * The role of the message sender
      */
-    role?: 'user' | 'ai';
+    role: 'user' | 'ai';
+    /**
+     * The model used to generate the message
+     */
+    model?: string;
 };
 
 export type SubmitChatMessageRequest = {

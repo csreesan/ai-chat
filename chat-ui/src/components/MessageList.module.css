@@ -40,6 +40,12 @@
     color: #333;
 }
 
+.aiModel {
+    align-self: flex-start;
+    color: #7b7a7a;
+    font-size: 0.8em;
+}
+
 .message:last-child {
     margin-bottom: 75vh;
 }

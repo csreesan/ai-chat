@@ -1,4 +1,5 @@
 import { ChatMessage } from '../client';
+import { AVAILABLE_MODELS, MODEL_INFO } from '../constants/models';
 import styles from './MessageList.module.css';
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -26,10 +27,14 @@ const MessageList = ({ messages }: MessageListProps) => {
           key={index} 
           className={msg.role === 'user' ? styles.userMessage : styles.aiMessage}
         >
-          <ReactMarkdown 
-          >
+          <ReactMarkdown>
             {msg.content}
           </ReactMarkdown>
+          {msg.role === 'ai' && (
+            <div className={styles.aiModel}>
+              From: {MODEL_INFO[msg.model as keyof typeof MODEL_INFO].displayName}
+            </div>
+          )}
         </div>
       ))}
     </div>

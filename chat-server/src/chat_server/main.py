@@ -1,9 +1,9 @@
 import os
 import random
-from typing import List, Union
+from typing import Generator, List, Union
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session, SQLModel, create_engine, select
@@ -74,8 +74,14 @@ def get_chat_messages(thread_id: str) -> List[ChatMessage]:
     Get all chat messages
     """
     with Session(engine) as session:
+        if not _check_thread_exists(session, thread_id):
+            raise HTTPException(status_code=404, detail="Thread not found")
         messages = _get_entire_chat_history(session, thread_id)
-        return [ChatMessage(content=message.content, role=message.role) for message in messages]
+        return [ChatMessage(content=message.content, role=message.role, model=message.model) for message in messages]
+
+
+def _check_thread_exists(session: Session, thread_id: str) -> bool:
+    return session.exec(select(ThreadModel).where(ThreadModel.id == thread_id)).first() is not None
 
 
 @app.post(
@@ -94,13 +100,13 @@ def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union
 
     # Get existing messages for context
     with Session(engine) as session:
-        existing_messages = _get_entire_chat_history(session, thread_id)
+        messages = _get_entire_chat_history(session, thread_id)
 
     # Add the new user message to the context for the AI
-    messages = existing_messages + [ChatMessage(content=body.content, role=Role.user)]
+    messages.append(ChatMessage(content=body.content, role=Role.user))
 
     # Create a generator function for the streaming response
-    def response_generator():
+    def response_generator() -> Generator[str, None, None]:
         entire_response = ""
         try:
             response = llm.get_stream_generator(messages)
@@ -114,13 +120,17 @@ def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Union
                 # Add the user message
                 session.add(user_message)
                 # Add the AI response
-                ai_message = ChatMessageModel(content=entire_response, thread_id=thread_id, role=Role.ai)
+                ai_message = ChatMessageModel(
+                    content=entire_response,
+                    thread_id=thread_id,
+                    role=Role.ai,
+                    model=body.model.value,
+                )
                 session.add(ai_message)
                 session.commit()
         except Exception as e:
-            # If something goes wrong, nothing gets committed
-            # Re-raise the exception to be handled by FastAPI
-            raise e
+            logger.error(f"Error during streaming: {e}")
+            raise
 
     return StreamingResponse(
         response_generator(),
@@ -139,7 +149,14 @@ def _get_entire_chat_history(session: Session, thread_id: str) -> List[ChatMessa
         )
         .order_by(ChatMessageModel.created_at),
     ).all()
-    return [ChatMessage(content=message.content, role=message.role) for message in messages]
+    return [
+        ChatMessage(
+            content=message.content,
+            role=message.role,
+            model=message.model,
+        )
+        for message in messages
+    ]
 
 
 @app.exception_handler(Exception)
