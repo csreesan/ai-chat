@@ -17,6 +17,8 @@ const TextInput: React.FC<TextInputProps> = ({
   const defaultModel: SubmitChatMessageRequest['model'] = AVAILABLE_MODELS[0].value as SubmitChatMessageRequest['model'];
   const [inputValue, setInputValue] = useState<string>('');
   const [model, setModel] = useState<SubmitChatMessageRequest['model']>(defaultModel);
+  const [compareMode, setCompareMode] = useState<boolean>(false);
+  const [secondModel, setSecondModel] = useState<SubmitChatMessageRequest['model']>(defaultModel);
   
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,9 +49,10 @@ const TextInput: React.FC<TextInputProps> = ({
           rows={1}
           className={styles.textarea}
         />
-        <div className={styles.buttonsContainer}>
-          <button
-            type="submit"
+        <div className={styles.configContainer}>
+          <div className={styles.buttonsContainer}>
+            <button
+              type="submit"
             disabled={!inputValue.trim() || disabled}
             className={`${styles.submitButton} ${!inputValue.trim() || disabled ? styles.disabled : ''}`}
           >
@@ -61,12 +64,39 @@ const TextInput: React.FC<TextInputProps> = ({
             value={model}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setModel(e.target.value as SubmitChatMessageRequest['model'])}
           >
-            {AVAILABLE_MODELS.map(model => (
-              <option key={model.value} value={model.value} title={model.description}>
-                {model.displayName}
+            {AVAILABLE_MODELS.map(modelOption => (
+              <option key={modelOption.value} value={modelOption.value} title={modelOption.description}>
+                {modelOption.displayName}
               </option>
             ))}
           </select>
+
+          {compareMode && (
+            <select
+              className={styles.modelSelect}
+              disabled={disabled}
+              value={secondModel}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setSecondModel(e.target.value as SubmitChatMessageRequest['model'])}
+            >
+              {AVAILABLE_MODELS.map(modelOption => (
+                <option key={modelOption.value} value={modelOption.value} title={modelOption.description}>
+                  {modelOption.displayName}
+                </option>
+              ))}
+            </select>
+          )}
+          </div>
+          <div className={styles.toggleContainer}>
+            <span className={styles.toggleLabel}>Comparison Mode</span>
+            <label className={styles.toggleSwitch}>
+              <input
+                type="checkbox"
+                checked={compareMode}
+                onChange={() => setCompareMode(!compareMode)}
+              />
+              <span className={styles.toggleSlider}></span>
+            </label>
+          </div>
         </div>
       </form>
     </div>
