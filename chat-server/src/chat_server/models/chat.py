@@ -12,4 +12,4 @@ class ChatMessage(SQLModel, table=True):
     role: str
     model: str | None = Field(default=None)
 
-    __table_args__ = Index("thread_id_created_at_index", "thread_id", "created_at")
+    __table_args__ = (Index("thread_id_created_at_index", "thread_id", "created_at"),)

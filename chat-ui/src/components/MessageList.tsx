@@ -1,5 +1,5 @@
 import { ChatMessage } from '../client';
-import { AVAILABLE_MODELS, MODEL_INFO } from '../constants/models';
+import { MODEL_INFO } from '../constants/models';
 import styles from './MessageList.module.css';
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';

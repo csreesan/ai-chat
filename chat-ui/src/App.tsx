@@ -5,7 +5,7 @@ import { useChatMessages } from './hooks/useChatMessage';
 import './App.css';
 import ChatSidebar from './components/ChatSidebar';
 import styles from './Apps.module.css';
-import { CurrentThreadProvider } from './CurrentThreadContext';
+import CurrentThreadProvider from './CurrentThreadContext';
 import { ChatMessage } from './client';
 import { client } from './client/client.gen';
 import { ChatThread } from './types/types';

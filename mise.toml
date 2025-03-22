@@ -12,6 +12,16 @@ run = "npm run dev"
 depends = ["frontend-install"]
 dir = "{{ config_root }}/chat-ui"
 
+[tasks.frontend-lint]
+run = "npm run lint"
+depends = ["frontend-install"]
+dir = "{{ config_root }}/chat-ui"
+
+[tasks.frontend-lint-fix]
+run = "npm run lint -- --fix"
+depends = ["frontend-install"]
+dir = "{{ config_root }}/chat-ui"
+
 [tasks.server-lock]
 run = "poetry lock"
 dir = "{{ config_root }}/chat-server"

@@ -62,7 +62,7 @@ def get_threads() -> list[Thread]:
         return [Thread(id=thread.id, name=thread.name, created_at=thread.created_at) for thread in threads]
 
 
-@app.get("/thread/{thread_id}/chat", rtags=["Chat"])
+@app.get("/thread/{thread_id}/chat", tags=["Chat"])
 def get_chat_messages(thread_id: str) -> list[ChatMessage]:
     with Session(engine) as session:
         if not _check_thread_exists(session, thread_id):

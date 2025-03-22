@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ChatSidebar.module.css';
 import { getThreads, Thread as ThreadType, ChatMessage, getChatMessages } from '../client';
-import { useCurrentThread } from '../CurrentThreadContext';
+import { useCurrentThread } from '../hooks/useCurrentThread';
 import { ChatThread } from '../types/types';
 
 // Add props interface

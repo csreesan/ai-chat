@@ -1,4 +1,5 @@
-from collections.abc import Generator, Literal
+from collections.abc import Generator
+from typing import Literal
 
 from openai import OpenAI
 from openai.types.chat import (

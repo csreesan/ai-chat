@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { submitChatMessage, ChatMessage, createThread } from '../client';
-import { useCurrentThread } from '../CurrentThreadContext';
+import { useCurrentThread } from './useCurrentThread';
 import { ChatThread } from '../types/types';
 
 export const useChatMessages = (
@@ -16,7 +16,7 @@ export const useChatMessages = (
     setIsLoading(true);
     setError(null);
 
-    var currentThreadId = threadId;
+    let currentThreadId = threadId;
 
     if (currentThreadId === null) {
       // Create a new thread if no thread is selected

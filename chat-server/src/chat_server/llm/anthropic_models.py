@@ -1,4 +1,5 @@
-from collections.abc import Generator, Literal
+from collections.abc import Generator
+from typing import Literal
 
 from anthropic import Anthropic
 from anthropic.types.message_param import MessageParam
