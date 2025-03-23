@@ -42,7 +42,7 @@ depends = ["frontend-dev", "server-dev", "docker-compose"]
 
 [tasks.docker-compose]
 run = "docker compose up -d"
-dir = "{{ config_root }}"
+dir = "{{ config_root }}/deployments"
 
 [tasks.server-generate-types]
 run = "poetry run fastapi-codegen --input {{ config_root }}/api-spec/openapi.yaml --output {{ config_root }}/chat-server/src/chat_server/generated"

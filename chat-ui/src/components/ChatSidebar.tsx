@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import styles from './ChatSidebar.module.css';
 import { getThreads, Thread as ThreadType, ChatMessage, getChatMessages } from '../client';
 import { useCurrentThread } from '../hooks/useCurrentThread';
-import { ChatThread } from '../types/types';
+import { ChatThread, DisplayChatMessage } from '../types/types';
 
 // Add props interface
 interface ChatSidebarProps {
-  setMessages: (messages: ChatMessage[]) => void;
+  setMessages: (messages: DisplayChatMessage[]) => void;
   threads: ChatThread[];
   setThreads: (threads: ChatThread[] | ((prevThreads: ChatThread[]) => ChatThread[])) => void;
 }
@@ -62,7 +62,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ setMessages, threads, setThre
     }
     const response = await getChatMessages({ path: { thread_id: id } });
     if (response.data) {
-      setMessages(response.data);
+      setMessages(response.data.map((msg: ChatMessage) => ({ messages: [msg], role: msg.role })));
     } else {
       console.error(response.error);
     }

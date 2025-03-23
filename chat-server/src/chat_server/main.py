@@ -1,14 +1,27 @@
+import asyncio
+import json
 import os
 import random
-from collections.abc import Generator
+import uuid
+from collections.abc import AsyncGenerator
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from redis import Redis
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from chat_server.generated.models import ChatMessage, Error, Role, SubmitChatMessageRequest, Thread
+from chat_server.generated.models import (
+    ChatMessage,
+    Error,
+    Model,
+    Role,
+    SubmitChatMessageCompareRequest,
+    SubmitChatMessageRequest,
+    SubmitChatMessageSelectRequest,
+    Thread,
+)
 from chat_server.llm.factory import llm_factory
 from chat_server.models.chat import ChatMessage as ChatMessageModel
 from chat_server.models.thread import Thread as ThreadModel
@@ -19,6 +32,10 @@ load_dotenv()
 DATABASE_URL = os.environ["DATABASE_URL"]
 engine = create_engine(DATABASE_URL)
 SQLModel.metadata.create_all(engine)
+redis_url = os.environ["REDIS_URL"]
+redis_port = os.environ["REDIS_PORT"]
+redis_db = os.environ["REDIS_DB"]
+redis_client = Redis(host=redis_url, port=redis_port, db=redis_db)
 
 
 app = FastAPI(
@@ -81,7 +98,7 @@ def _check_thread_exists(session: Session, thread_id: str) -> bool:
     response_model=None,
     tags=["Chat"],
 )
-def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> StreamingResponse | Error:
+async def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> StreamingResponse | Error:
     # Create the user message but don't commit it yet
     llm = llm_factory(body.model)
     user_message = ChatMessageModel(content=body.content, thread_id=thread_id, role=Role.user)
@@ -94,11 +111,11 @@ def submit_chat_message(thread_id: str, body: SubmitChatMessageRequest) -> Strea
     messages.append(ChatMessage(content=body.content, role=Role.user))
 
     # Create a generator function for the streaming response
-    def response_generator() -> Generator[str, None, None]:
+    async def response_generator() -> AsyncGenerator[str, None]:
         entire_response = ""
         try:
-            response = llm.get_stream_generator(messages)
-            for chunk in response:
+            stream = llm.get_stream_generator(messages)
+            async for chunk in stream:
                 entire_response += chunk
                 yield chunk
 
@@ -142,6 +159,130 @@ def _get_entire_chat_history(session: Session, thread_id: str) -> list[ChatMessa
         )
         for message in messages
     ]
+
+
+@app.post(
+    "/thread/{thread_id}/chat/compare",
+    response_model=None,
+    responses={"400": {"model": Error}},
+    tags=["Chat"],
+)
+async def submit_chat_message_compare(
+    thread_id: str, body: SubmitChatMessageCompareRequest
+) -> StreamingResponse | Error:
+    compare_message_id = str(uuid.uuid4())
+    user_message_key = f"{compare_message_id}:user_message"
+    redis_client.set(user_message_key, body.content, ex=60*60)
+    with Session(engine) as session:
+        messages = _get_entire_chat_history(session, thread_id)
+    messages.append(ChatMessage(content=body.content, role=Role.user))
+    return StreamingResponse(
+        _merge_streams(body.models, messages, compare_message_id),
+        media_type="text/event-stream"
+    )
+
+async def _merge_streams(
+    models: list[Model],
+    messages: list[ChatMessage],
+    compare_message_id: str,
+) -> AsyncGenerator[str, None]:
+    logger.error(f"IN MERGE STREAMS Models: {models}")
+    try:
+        tasks = []
+        queue = asyncio.Queue()
+        final_messages = {}
+        for model in models:
+            final_messages[model.value] = ""
+
+        # Send initial compare_message_id
+        yield f"data: {json.dumps({'compare_message_id': compare_message_id})}\n\n"
+
+        async def run(model: str) -> None:
+            try:
+                stream = llm_factory(model).get_stream_generator(messages)
+                logger.info(f"Got Stream for {model}")
+                async for item in stream:
+                    final_messages[model.value] += item
+                    message = json.dumps({"model": model.value, "content": item})
+                    logger.info(f"Queuing {model}: {item}")
+                    try:
+                        # Add timeout for queue put operations
+                        await queue.put(message)
+                    except Exception as e:
+                        logger.error(f"Error queuing message for {model}: {e}")
+                        raise
+            except Exception as e:
+                logger.error(f"Error in run task for {model}: {e}")
+                raise
+            finally:
+                # Signal this task is done
+                await queue.put(f"DONE_{model.value}")
+
+        # Start all model tasks
+        tasks = [asyncio.create_task(run(model)) for model in models]
+        active_models = {model.value for model in models}
+        logger.error(f"Active models: {active_models}")
+
+        # Stream results as they come in
+        while active_models:
+            try:
+                # Add timeout for queue get operations
+                message = await asyncio.wait_for(queue.get(), timeout=5)
+                if isinstance(message, str) and message.startswith("DONE_"):
+                    done_model = message.strip("DONE_")
+                    active_models.remove(done_model)
+                    continue
+                yield f"data: {message}\n\n"
+            except asyncio.TimeoutError:
+                logger.error("Timeout while waiting for model responses")
+                break
+            except Exception as e:
+                logger.error(f"Error processing queue item: {e}")
+                break
+
+        # Wait for all tasks to complete with timeout
+        try:
+            await asyncio.wait_for(asyncio.gather(*tasks, return_exceptions=True), timeout=60.0)
+        except asyncio.TimeoutError:
+            logger.error("Timeout while waiting for tasks to complete")
+
+        # Store final messages in Redis
+        for model in models:
+            redis_client.set(f"{compare_message_id}:{model}", final_messages[model.value])
+
+    except Exception as e:
+        logger.error(f"Error during streaming: {e}")
+        if tasks:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+        raise
+
+
+
+@app.post(
+    "/thread/{thread_id}/chat/compare/select",
+    response_model=None,
+    responses={"400": {"model": Error}},
+    tags=["Chat"],
+)
+def submit_chat_message_select(
+    thread_id: str, body: SubmitChatMessageSelectRequest,
+) -> JSONResponse | Error:
+    user_message_key = f"{body.compare_message_id}:user_message"
+    ai_message_key = f"{body.compare_message_id}:{body.selected_model}"
+    user_message = redis_client.get(user_message_key)
+    ai_message = redis_client.get(ai_message_key)
+    with Session(engine) as session:
+        session.add(ChatMessageModel(content=user_message, role=Role.user, thread_id=thread_id))
+        session.add(ChatMessageModel(
+            content=ai_message,
+            role=Role.ai,
+            thread_id=thread_id,
+            model=body.selected_model.value,
+        ))
+        session.commit()
+
 
 
 @app.exception_handler(Exception)

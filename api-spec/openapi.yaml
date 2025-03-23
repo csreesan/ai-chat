@@ -57,6 +57,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /thread/{thread_id}/chat/compare:
+    parameters:
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: The unique identifier of the thread
+    post:
+      summary: Submit a chat message and get a response from another model
+      operationId: submitChatMessageCompare
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitChatMessageCompareRequest'
+      responses:
+        '200':
+          description: Chat message response as Server-Sent Events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                format: binary
+                description: Server-Sent Events stream containing model responses
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /thread/{thread_id}/chat/compare/select:
+    parameters:
+      - name: thread_id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Submit a chat message selection
+      operationId: submitChatMessageSelect
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitChatMessageSelectRequest'
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /thread:
     post:
       summary: Create a new thread
@@ -101,6 +162,20 @@ components:
         created_at:
           type: string
           format: date-time
+    Model:
+      type: string
+      description: Available AI models
+      enum:
+        - gpt-4o-mini
+        - gpt-4o
+        - claude-3-7-sonnet-20250219
+        - claude-3-5-sonnet-20241022
+    Role:
+      type: string
+      description: The role of the message sender
+      enum:
+        - user
+        - ai
     ChatMessage:
       type: object
       required:
@@ -111,13 +186,9 @@ components:
           type: string
           description: The text content of the message
         role:
-          type: string
-          description: The role of the message sender
-          enum:
-            - user
-            - ai
+          $ref: '#/components/schemas/Role'
         model:
-          type: string
+          $ref: '#/components/schemas/Model'
           description: The model used to generate the message
     SubmitChatMessageRequest:
       type: object
@@ -128,13 +199,8 @@ components:
         content:
           type: string
         model:
-          type: string
+          $ref: '#/components/schemas/Model'
           description: The model to use for the chat message
-          enum:
-            - gpt-4o-mini
-            - gpt-4o
-            - claude-3-7-sonnet-20250219
-            - claude-3-5-sonnet-20241022
     Error:
       type: object
       required:
@@ -145,3 +211,28 @@ components:
           type: string
         message:
           type: string
+    SubmitChatMessageCompareRequest:
+      type: object
+      required:
+        - content
+        - models
+      properties:
+        content:
+          type: string
+          description: The text content of the message
+        models:
+          type: array
+          description: The models to use for comparison
+          items:
+            $ref: '#/components/schemas/Model'
+          minItems: 1
+    SubmitChatMessageSelectRequest:
+      type: object
+      required:
+        - comparison_message_id
+        - selected_model
+      properties:
+        comparison_message_id:
+          type: string
+        selected_model:
+          $ref: '#/components/schemas/Model'

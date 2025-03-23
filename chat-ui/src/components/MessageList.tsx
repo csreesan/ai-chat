@@ -1,11 +1,10 @@
-import { ChatMessage } from '../client';
 import { MODEL_INFO } from '../constants/models';
 import styles from './MessageList.module.css';
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-
+import { DisplayChatMessage } from '../types/types';
 interface MessageListProps {
-  messages: ChatMessage[];
+  messages: DisplayChatMessage[];
 }
 
 const MessageList = ({ messages }: MessageListProps) => {
@@ -23,18 +22,22 @@ const MessageList = ({ messages }: MessageListProps) => {
   return (
     <div className={styles.chatContainer} ref={containerRef}>
       {messages.map((msg, index) => (
-        <div 
-          key={index} 
-          className={msg.role === 'user' ? styles.userMessage : styles.aiMessage}
-        >
-          <ReactMarkdown>
-            {msg.content}
-          </ReactMarkdown>
-          {msg.role === 'ai' && (
-            <div className={styles.aiModel}>
-              From: {MODEL_INFO[msg.model as keyof typeof MODEL_INFO].displayName}
+        <div key={index} className={msg.role === 'user' ? styles.userMessageContainer : styles.aiMessageContainer}>
+          {msg.messages.map((m, i) => (
+            <div 
+              key={i} 
+              className={`${m.role === 'user' ? styles.userMessage : styles.aiMessage}`}
+            >
+              <ReactMarkdown>
+                {m.content}
+              </ReactMarkdown>
+              {m.role === 'ai' && (
+                <div className={styles.aiModel}>
+                  From: {MODEL_INFO[m.model as keyof typeof MODEL_INFO].displayName}
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
       ))}
     </div>

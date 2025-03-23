@@ -6,32 +6,49 @@ export type Thread = {
     created_at: string;
 };
 
+/**
+ * Available AI models
+ */
+export type Model = 'gpt-4o-mini' | 'gpt-4o' | 'claude-3-7-sonnet-20250219' | 'claude-3-5-sonnet-20241022';
+
+/**
+ * The role of the message sender
+ */
+export type Role = 'user' | 'ai';
+
 export type ChatMessage = {
     /**
      * The text content of the message
      */
     content: string;
-    /**
-     * The role of the message sender
-     */
-    role: 'user' | 'ai';
-    /**
-     * The model used to generate the message
-     */
-    model?: string;
+    role: Role;
+    model?: Model;
 };
 
 export type SubmitChatMessageRequest = {
     content: string;
-    /**
-     * The model to use for the chat message
-     */
-    model: 'gpt-4o-mini' | 'gpt-4o' | 'claude-3-7-sonnet-20250219' | 'claude-3-5-sonnet-20241022';
+    model: Model;
 };
 
 export type _Error = {
     code: string;
     message: string;
+};
+
+export type SubmitChatMessageCompareRequest = {
+    /**
+     * The text content of the message
+     */
+    content: string;
+    /**
+     * The models to use for comparison
+     */
+    models: Array<Model>;
+};
+
+export type SubmitChatMessageSelectRequest = {
+    comparison_message_id: string;
+    selected_model: Model;
 };
 
 export type GetChatMessagesData = {
@@ -84,6 +101,61 @@ export type SubmitChatMessageResponses = {
 };
 
 export type SubmitChatMessageResponse = SubmitChatMessageResponses[keyof SubmitChatMessageResponses];
+
+export type SubmitChatMessageCompareData = {
+    body: SubmitChatMessageCompareRequest;
+    path: {
+        /**
+         * The unique identifier of the thread
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/thread/{thread_id}/chat/compare';
+};
+
+export type SubmitChatMessageCompareErrors = {
+    /**
+     * Invalid input
+     */
+    400: _Error;
+};
+
+export type SubmitChatMessageCompareError = SubmitChatMessageCompareErrors[keyof SubmitChatMessageCompareErrors];
+
+export type SubmitChatMessageCompareResponses = {
+    /**
+     * Server-Sent Events stream containing model responses
+     */
+    200: Blob | File;
+};
+
+export type SubmitChatMessageCompareResponse = SubmitChatMessageCompareResponses[keyof SubmitChatMessageCompareResponses];
+
+export type SubmitChatMessageSelectData = {
+    body: SubmitChatMessageSelectRequest;
+    path: {
+        thread_id: string;
+    };
+    query?: never;
+    url: '/thread/{thread_id}/chat/compare/select';
+};
+
+export type SubmitChatMessageSelectErrors = {
+    /**
+     * Invalid input
+     */
+    400: _Error;
+};
+
+export type SubmitChatMessageSelectError = SubmitChatMessageSelectErrors[keyof SubmitChatMessageSelectErrors];
+
+export type SubmitChatMessageSelectResponses = {
+    /**
+     * Success
+     */
+    200: unknown;
+};
 
 export type GetThreadsData = {
     body?: never;
