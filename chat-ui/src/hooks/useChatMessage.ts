@@ -109,7 +109,7 @@ export const useChatMessages = (
     try {
       // Create placeholders for the AI message
       const aiPlaceholders: ChatMessage[] = models.map((model) => ({ content: '', role: 'ai', model: model }));
-      setMessages((prev: DisplayChatMessage[]) => [...prev,  { messages: aiPlaceholders, role: 'ai' }]);
+      setMessages((prev: DisplayChatMessage[]) => [...prev, { messages: aiPlaceholders, role: 'ai', isLoading: true }]);
       
       const response = await submitChatMessageCompare({
         parseAs: 'stream',
@@ -126,6 +126,7 @@ export const useChatMessages = (
         let done = false;
         // Create a map to track accumulated content for each model
         const modelContentMap = Object.fromEntries(models.map(model => [model, '']));
+        let compareMessageId = '';
         
         while (!done) {
           const { value, done: doneReading } = await reader.read();
@@ -147,7 +148,13 @@ export const useChatMessages = (
               
               try {
                 const new_message = JSON.parse(text_without_data);
-                if ('compare_message_id' in new_message && new_message['compare_message_id'] !== "") {
+                if ('comparison_message_id' in new_message && new_message['comparison_message_id'] !== "") {
+                  compareMessageId = new_message['comparison_message_id'];
+                  setMessages((prev: DisplayChatMessage[]) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1].comparison_message_id = compareMessageId;
+                    return updated;
+                  });
                   continue;
                 }
                 
@@ -169,6 +176,12 @@ export const useChatMessages = (
             }
           }
         }
+        // Set loading to false when streaming is complete
+        setMessages((prev: DisplayChatMessage[]) => {
+          const updated = [...prev];
+          updated[updated.length - 1].isLoading = false;
+          return updated;
+        });
       } else {
         console.error('NOT A STREAM');
       }

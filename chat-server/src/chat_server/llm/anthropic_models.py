@@ -1,12 +1,10 @@
 from collections.abc import AsyncGenerator
-from typing import Literal
 
 from anthropic import AsyncAnthropic
 from anthropic.types.message_param import MessageParam
 
 from chat_server.generated.models import ChatMessage, Model, Role
 from chat_server.llm.llm import LLM, InvalidMessageRoleError
-from chat_server.utils.logging import logger
 
 
 class AnthropicModels(LLM):
@@ -43,5 +41,4 @@ class AnthropicModels(LLM):
             messages=messages,
         ) as stream:
             async for text in stream.text_stream:
-                logger.info(f"ANTHROPIC: Received text: {text}")
                 yield text

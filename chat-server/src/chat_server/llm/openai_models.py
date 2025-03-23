@@ -9,7 +9,6 @@ from openai.types.chat import (
 
 from chat_server.generated.models import ChatMessage, Model, Role
 from chat_server.llm.llm import LLM, InvalidMessageRoleError
-from chat_server.utils.logging import logger
 
 class OpenAIModels(LLM):
     def __init__(self, model_name: Model) -> None:
@@ -48,5 +47,4 @@ class OpenAIModels(LLM):
             if chunk.choices[0].finish_reason == "stop":
                 break
             if chunk.choices[0].delta.content:
-                logger.info(f"OPENAI: Received text: {chunk.choices[0].delta.content}")
                 yield chunk.choices[0].delta.content

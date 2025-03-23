@@ -170,23 +170,22 @@ def _get_entire_chat_history(session: Session, thread_id: str) -> list[ChatMessa
 async def submit_chat_message_compare(
     thread_id: str, body: SubmitChatMessageCompareRequest
 ) -> StreamingResponse | Error:
-    compare_message_id = str(uuid.uuid4())
-    user_message_key = f"{compare_message_id}:user_message"
+    comparison_message_id = str(uuid.uuid4())
+    user_message_key = f"{comparison_message_id}:user_message"
     redis_client.set(user_message_key, body.content, ex=60*60)
     with Session(engine) as session:
         messages = _get_entire_chat_history(session, thread_id)
     messages.append(ChatMessage(content=body.content, role=Role.user))
     return StreamingResponse(
-        _merge_streams(body.models, messages, compare_message_id),
+        _merge_streams(body.models, messages, comparison_message_id),
         media_type="text/event-stream"
     )
 
 async def _merge_streams(
     models: list[Model],
     messages: list[ChatMessage],
-    compare_message_id: str,
+    comparison_message_id: str,
 ) -> AsyncGenerator[str, None]:
-    logger.error(f"IN MERGE STREAMS Models: {models}")
     try:
         tasks = []
         queue = asyncio.Queue()
@@ -194,17 +193,15 @@ async def _merge_streams(
         for model in models:
             final_messages[model.value] = ""
 
-        # Send initial compare_message_id
-        yield f"data: {json.dumps({'compare_message_id': compare_message_id})}\n\n"
+        # Send initial comparison_message_id
+        yield f"data: {json.dumps({'comparison_message_id': comparison_message_id})}\n\n"
 
         async def run(model: str) -> None:
             try:
                 stream = llm_factory(model).get_stream_generator(messages)
-                logger.info(f"Got Stream for {model}")
                 async for item in stream:
                     final_messages[model.value] += item
                     message = json.dumps({"model": model.value, "content": item})
-                    logger.info(f"Queuing {model}: {item}")
                     try:
                         # Add timeout for queue put operations
                         await queue.put(message)
@@ -221,7 +218,6 @@ async def _merge_streams(
         # Start all model tasks
         tasks = [asyncio.create_task(run(model)) for model in models]
         active_models = {model.value for model in models}
-        logger.error(f"Active models: {active_models}")
 
         # Stream results as they come in
         while active_models:
@@ -248,7 +244,7 @@ async def _merge_streams(
 
         # Store final messages in Redis
         for model in models:
-            redis_client.set(f"{compare_message_id}:{model}", final_messages[model.value])
+            redis_client.set(f"{comparison_message_id}:{model}", final_messages[model.value])
 
     except Exception as e:
         logger.error(f"Error during streaming: {e}")
@@ -269,10 +265,10 @@ async def _merge_streams(
 def submit_chat_message_select(
     thread_id: str, body: SubmitChatMessageSelectRequest,
 ) -> JSONResponse | Error:
-    user_message_key = f"{body.compare_message_id}:user_message"
-    ai_message_key = f"{body.compare_message_id}:{body.selected_model}"
-    user_message = redis_client.get(user_message_key)
-    ai_message = redis_client.get(ai_message_key)
+    user_message_key = f"{body.comparison_message_id}:user_message"
+    ai_message_key = f"{body.comparison_message_id}:{body.selected_model}"
+    user_message = redis_client.get(user_message_key).decode("utf-8")
+    ai_message = redis_client.get(ai_message_key).decode("utf-8")
     with Session(engine) as session:
         session.add(ChatMessageModel(content=user_message, role=Role.user, thread_id=thread_id))
         session.add(ChatMessageModel(

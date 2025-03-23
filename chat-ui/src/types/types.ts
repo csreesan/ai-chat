@@ -9,4 +9,6 @@ export interface ChatThread {
 export type DisplayChatMessage = {
   messages: ChatMessage[];
   role: Role;
+  comparison_message_id?: string;
+  isLoading?: boolean;
 }

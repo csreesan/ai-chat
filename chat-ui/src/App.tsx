@@ -46,7 +46,7 @@ function AppContent({
   return (
     <>
       <ChatSidebar setMessages={setMessages} threads={threads} setThreads={setThreads} />
-      <MessageList messages={messages} />
+      <MessageList messages={messages} setMessages={setMessages} />
       {error && <div className={styles.errorMessage}>{error}</div>}
       <div className={styles.inputArea}>
         <TextInput onSubmit={addMessage} onCompareSubmit={compareMessages} disabled={isLoading} />

@@ -74,3 +74,28 @@
 .messageContainer:last-child {
     margin-bottom: 65vh;
 }
+
+.selectVersionButton {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background-color: #c84507;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.selectVersionButton:hover:not(:disabled) {
+    background-color: #a33906;
+}
+
+.selectVersionButton:active:not(:disabled) {
+    background-color: #8c3105;
+}
+
+.selectVersionButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
