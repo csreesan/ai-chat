@@ -166,10 +166,20 @@ components:
       type: string
       description: Available AI models
       enum:
-        - gpt-4o-mini
+        - gpt-3.5-turbo
+        - gpt-4-turbo
         - gpt-4o
-        - claude-3-7-sonnet-20250219
+        - gpt-4o-mini
+        - gpt-4.5-preview
+        - o1
+        - o1-mini
+        - o3-mini
+        - claude-2.1
+        - claude-3-opus-20240229
+        - claude-3-5-haiku-20241022
         - claude-3-5-sonnet-20241022
+        - claude-3-7-sonnet-20250219
+
     Role:
       type: string
       description: The role of the message sender

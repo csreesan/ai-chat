@@ -31,7 +31,7 @@ export const useChatMessages = (
     return currentThreadId;
   }
 
-  const addMessage = async (text: string, model: 'gpt-4o-mini' | 'gpt-4o' | 'claude-3-7-sonnet-20250219' | 'claude-3-5-sonnet-20241022') => {
+  const addMessage = async (text: string, model: Model) => {
     // Send to API and add AI response
     setIsLoading(true);
     setError(null);
